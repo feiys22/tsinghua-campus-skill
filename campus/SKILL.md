@@ -1,6 +1,6 @@
 ---
 name: campus
-description: 清华校园服务技能包（统一入口）。涵盖网络学堂/课表/成绩/培养方案/第二成绩单/选课/邮箱/文献/图书馆/座位预约/研读间/校内通知/水木搜索/高德地图/**校内大模型（MAD：DeepSeek-V4.1-Flash / qwen3.8-27b / DeepSeek-R1-W8A8，含本地 OpenAI 代理）** 等校园事务。当用户提到"校园服务、网络学堂、作业、课表、成绩、邮箱、文献、图书馆、座位、研读间、校内通知、搜书、地图、路径、清华附近吃饭、**清华的 Deepseek / 校内大模型 / madmodel**"等需求时使用。第一次使用需先初始化（install → creds → login → 统一 .env）。
+description: 清华校园服务技能包（统一入口）。涵盖网络学堂/课表/成绩/培养方案/第二成绩单/选课/邮箱/文献/图书馆/座位预约/研读间/校内通知/水木搜索/高德地图/**校内大模型（MAD：DeepSeek-V4.1-Flash / qwen3.8-27b / DeepSeek-R1-W8A8，含本地 OpenAI 代理）** 等校园事务。当用户提到"校园服务、网络学堂、作业、课表、成绩、邮箱、微信消息、文献、图书馆、座位、研读间、校内通知、搜书、地图、路径、清华附近吃饭、**清华的 Deepseek / 校内大模型 / madmodel**"等需求时使用。第一次使用需先初始化（install → creds → login → 统一 .env）。
 metadata:
   openclaw:
     requires:
@@ -31,7 +31,7 @@ metadata:
 
 ### ⚠️ 版本与自修声明（完整版见根 `SKILL.md` 新手指引 Caveat）
 
-- 本技能包仍在迭代中，主功能已测试可用（learn/search/literature/timetable/transcript/program/course/ts2/library/mail/info/amap/madmodel）
+- 本技能包仍在迭代中，主功能已测试可用（learn/search/literature/timetable/transcript/program/course/ts2/library/mail/wechat/info/amap/madmodel）
 - 遇到 bug（脚本报错/接口变更/登录失效）时，**AI 可自行修改本包代码修复**，不必等用户
 - 约束：只改出问题的模块，**禁止动已测试通过的核心路径**（install/creds/base-cas 底座）
 - 回归：修复后跑 `tests/smoke_test.py` + 实测一次真实数据
@@ -70,6 +70,7 @@ metadata:
   第二成绩单/课外经历 → ts2 SKILL（子）
   图书馆/座位/研读间 → library SKILL（子，含研读间占用+预约人）
 邮箱       → mail SKILL（子）
+  微信消息/群聊/从微信抽待办 → wechat SKILL（子，本地只读；优先 wx-cli）
   文献检索   → literature SKILL（子，4 源：Scopus/arXiv/OpenAlex/Crossref）
   校内通知   → info SKILL（子）
   图书馆座位 → library SKILL（子）
@@ -120,6 +121,7 @@ metadata:
 | ts2 | `ts2/scripts/ts2.py status|list|export` | 第二成绩单查询/导出 |
 | library | `library/scripts/library.py seat|areas|my-bookings|rooms|book|cancel` | 图书馆查询/选座预约 |
 | mail | `mail/scripts/mail.py list|read|send|mark-read` | 收发邮件 |
+| wechat | `wechat/scripts/wechat.py setup|status|sessions|history|search|export-todos` | 微信本地消息只读（优先 wx-cli） |
 | info | `info/scripts/info.py notices|read|search` | 校内通知/水木搜索 |
 
 > 开发文档：`../docs/subskill-template.md`、`../docs/learn-verify.md`、`../docs/handoff.md`
@@ -171,6 +173,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
 | ts2 | `ts2/` | 第二成绩单（课外经历 19 模块 + 填报状态 + 导出官方 PDF） | ✅ 已实现 |
 | library | `library/` | 图书馆（座位余量/分布公开 + 选座预约 book/cancel + 我的预约 + 研读间占用） | ✅ 已实现 |
 | mail | `mail/` | 收发邮件（配置在统一 campus/.env） | ✅ 已实现 |
+| wechat | `wechat/` | 微信本地消息只读（优先本机 wx-cli；后备规范化解密库） | ✅ 已实现（薄封装） |
 | info | `info/` | 校内通知查询 + 水木搜索（馆藏检索） | ✅ 已实现 |
 | amap | `amap/` | 高德地图（地点/POI/周边/路径规划/地理编码/天气/IP/行政区划/距离/静态地图） | ✅ 已实现 |
 | madmodel | `madmodel/` | 清华 MAD 大模型（模型列表 + token 取/刷新 + 对话 + 本地 OpenAI 兼容代理）；**独立模块**，只依赖 base-cas/creds/common | ✅ 已实现（实验） |

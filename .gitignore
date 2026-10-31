@@ -9,3 +9,8 @@ __pycache__/
 # 临时输出
 campus/output/
 campus/tmp/
+
+# wechat 私有数据不应进仓（正常在用户 HOME；若误放仓库则忽略）
+campus/wechat/.local/
+**/campus-wechat/
+campus/runtime/wechat/
