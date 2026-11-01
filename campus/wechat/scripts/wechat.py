@@ -86,6 +86,21 @@ def _prefer_wx(args) -> bool:
     return find_wx_binary() is not None
 
 
+def _wx_init_hint(exc: Optional[BaseException] = None) -> str:
+    """未 init / daemon 失败时的统一下一步提示（不含密钥）。"""
+    base = (
+        "本机已装 wx 时请保持微信已登录，在终端执行：sudo wx init"
+        "（ptrace_scope=1 需要 root；成功后日常 sessions/history 无需 sudo）。"
+        "或改用 import-jsonl / 放入 index.db。"
+    )
+    if exc is None:
+        return base
+    msg = str(exc)
+    if len(msg) > 180:
+        msg = msg[:180] + "…"
+    return f"wx-cli 调用失败：{msg}。{base}"
+
+
 def _since_until_for_wx(since: Optional[int], until: Optional[int]) -> tuple[Optional[str], Optional[str]]:
     """wx-cli 接受 YYYY-MM-DD 或可解析日期；有 unix 则转本地日期。"""
     def fmt(ts: Optional[int]) -> Optional[str]:
@@ -217,6 +232,7 @@ def cmd_status(args):
 def cmd_sessions(args):
     home = _home()
     _guard(home)
+    wx_err: Optional[BaseException] = None
     if _prefer_wx(args):
         try:
             data = wx_sessions(limit=args.limit)
@@ -232,13 +248,14 @@ def cmd_sessions(args):
             )
             return
         except Exception as e:
+            wx_err = e
             if getattr(args, "backend", "auto") == "wx":
-                _fail(f"wx-cli 失败: {e}")
+                _fail(f"wx-cli 失败: {e}", hint=_wx_init_hint(e))
             common.log("[wechat] wx sessions failed; fallback index")
     try:
         conn, info = open_store(home)
     except FileNotFoundError as e:
-        _fail(str(e), hint="安装 wx-cli 并 wx init，或 import-jsonl / 放入 index.db")
+        _fail(str(e), hint=_wx_init_hint(wx_err))
     try:
         items = store_list_sessions(conn, limit=args.limit)
         common.output_json(
@@ -277,13 +294,16 @@ def cmd_history(args):
             )
             return
         except Exception as e:
+            wx_err = e
             if getattr(args, "backend", "auto") == "wx":
-                _fail(f"wx-cli 失败: {e}")
+                _fail(f"wx-cli 失败: {e}", hint=_wx_init_hint(e))
             common.log("[wechat] wx history failed; fallback index")
+    else:
+        wx_err = None
     try:
         conn, info = open_store(home)
     except FileNotFoundError as e:
-        _fail(str(e))
+        _fail(str(e), hint=_wx_init_hint(wx_err))
     try:
         items = store_history(
             conn, talker=talker, limit=args.limit, since=args.since, until=args.until
@@ -328,13 +348,16 @@ def cmd_search(args):
             )
             return
         except Exception as e:
+            wx_err = e
             if getattr(args, "backend", "auto") == "wx":
-                _fail(f"wx-cli 失败: {e}")
+                _fail(f"wx-cli 失败: {e}", hint=_wx_init_hint(e))
             common.log("[wechat] wx search failed; fallback index")
+    else:
+        wx_err = None
     try:
         conn, info = open_store(home)
     except FileNotFoundError as e:
-        _fail(str(e))
+        _fail(str(e), hint=_wx_init_hint(wx_err))
     try:
         items = store_search(conn, query=args.query, talker=args.in_talker, limit=args.limit)
         common.output_json(
@@ -396,14 +419,17 @@ def cmd_export_todos(args):
             )
             return
         except Exception as e:
+            wx_err = e
             if getattr(args, "backend", "auto") == "wx":
-                _fail(f"wx-cli 失败: {e}")
+                _fail(f"wx-cli 失败: {e}", hint=_wx_init_hint(e))
             common.log("[wechat] wx export-todos failed; fallback index")
+    else:
+        wx_err = None
 
     try:
         conn, info = open_store(home)
     except FileNotFoundError as e:
-        _fail(str(e))
+        _fail(str(e), hint=_wx_init_hint(wx_err))
     try:
         items = store_export_todos(
             conn, talker=args.talker, since=since, limit=args.limit

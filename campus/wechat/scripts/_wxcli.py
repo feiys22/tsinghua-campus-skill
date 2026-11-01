@@ -61,7 +61,11 @@ def wx_probe() -> dict[str, Any]:
 
 
 def run_wx(args: list[str], timeout: int = 60) -> dict[str, Any]:
-    """运行 `wx ... --json`，返回解析后的 dict；失败抛 RuntimeError。"""
+    """运行 `wx ... --json`，返回解析后的 dict；失败抛 RuntimeError。
+
+    固定 cwd 为用户 HOME，避免在其它项目目录下误读 ./config.json
+    （wx-cli 会优先 cwd 的 config.json，未 init 时还会默认写到 cwd）。
+    """
     bin_path = find_wx_binary()
     if not bin_path:
         raise RuntimeError("未找到 wx 二进制（wx-cli）")
@@ -76,6 +80,8 @@ def run_wx(args: list[str], timeout: int = 60) -> dict[str, Any]:
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
+        cwd=str(Path.home()),
+        env={**os.environ, "HOME": str(Path.home())},
     )
     raw = (r.stdout or "").strip()
     if not raw:
