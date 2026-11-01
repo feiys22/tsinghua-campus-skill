@@ -70,7 +70,7 @@ metadata:
   第二成绩单/课外经历 → ts2 SKILL（子）
   图书馆/座位/研读间 → library SKILL（子，含研读间占用+预约人）
 邮箱       → mail SKILL（子）
-  微信消息/群聊/从微信抽待办 → wechat SKILL（子，本地只读；优先 wx-cli）
+  微信消息/群聊 → wechat SKILL（子，本地只读；直接调用本机 wx）
   文献检索   → literature SKILL（子，4 源：Scopus/arXiv/OpenAlex/Crossref）
   校内通知   → info SKILL（子）
   图书馆座位 → library SKILL（子）
@@ -121,7 +121,7 @@ metadata:
 | ts2 | `ts2/scripts/ts2.py status|list|export` | 第二成绩单查询/导出 |
 | library | `library/scripts/library.py seat|areas|my-bookings|rooms|book|cancel` | 图书馆查询/选座预约 |
 | mail | `mail/scripts/mail.py list|read|send|mark-read` | 收发邮件 |
-| wechat | `wechat/scripts/wechat.py setup|status|sessions|history|search|export-todos` | 微信本地消息只读（优先 wx-cli） |
+| wechat | 直接调用本机 `wx`：`sessions` / `unread` / `search` / `history` / `new-messages`（见 `wechat/SKILL.md`） | 微信本地消息只读（无 Python 封装） |
 | info | `info/scripts/info.py notices|read|search` | 校内通知/水木搜索 |
 
 > 开发文档：`../docs/subskill-template.md`、`../docs/learn-verify.md`、`../docs/handoff.md`
@@ -174,7 +174,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
 | ts2 | `ts2/` | 第二成绩单（课外经历 19 模块 + 填报状态 + 导出官方 PDF） | ✅ 已实现 |
 | library | `library/` | 图书馆（座位余量/分布公开 + 选座预约 book/cancel + 我的预约 + 研读间占用） | ✅ 已实现 |
 | mail | `mail/` | 收发邮件（配置在统一 campus/.env） | ✅ 已实现 |
-| wechat | `wechat/` | 微信本地消息只读（优先本机 wx-cli；后备规范化解密库） | ✅ 已实现（薄封装） |
+| wechat | `wechat/` | 微信本地消息只读（直接调用本机 `wx`，无封装） | ✅ 已实现 |
 | info | `info/` | 校内通知查询 + 水木搜索（馆藏检索） | ✅ 已实现 |
 | amap | `amap/` | 高德地图（地点/POI/周边/路径规划/地理编码/天气/IP/行政区划/距离/静态地图） | ✅ 已实现 |
 | madmodel | `madmodel/` | 清华 MAD 大模型（模型列表 + token 取/刷新 + 对话 + 本地 OpenAI 兼容代理）；**独立模块**，只依赖 base-cas/creds/common | ✅ 已实现（实验） |
@@ -183,7 +183,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
 > 第二成绩单（`ts2/`）已实现：课外经历 19 模块查询 + 填报状态，直连无需 webvpn，全年可用。
 > `library`（`library/`）已实现：座位余量（公开）+ 座位分布（公开）+ 选座预约 book/cancel + 我的预约 + 研读间占用。我的图书馆（discover.lib 借阅记录）登录在 CDP 环境受限（第三方认证拦截），完整逆向笔记见 `../docs/library-reverse-notes.md`。
 > `mail`（`mail/`）已实现：收发邮件，配置统一在 `campus/.env`（`MAIL_ACCOUNTS`）。
-> `wechat`（`wechat/`）可选：调用本机 wx-cli 读取已登录的微信。没有可靠置顶字段。不把个人联系人写进代码。
+> `wechat`（`wechat/`）可选：AI 直接调用本机 `wx`（见 `wechat/SKILL.md`）。无 Python 封装、无可靠置顶字段。不把个人联系人写进代码。
 > `info`（`info/`）已实现：校内通知查询（分类列表 + 详情全文）。
 
 ### 面向用户的话术

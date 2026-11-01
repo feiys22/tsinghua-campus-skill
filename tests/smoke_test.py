@@ -92,15 +92,20 @@ def main():
         results["creds_schema"] = {"ok": False, "error": str(e)[:150]}
         ok_all = False
 
-    # 5. wechat 入口可调用（不连接微信数据库）
+    # 5. wechat 子技能为文档型（直接调用本机 wx，无 Python 封装）
     try:
-        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "wechat", "scripts", "wechat.py")
-        proc = subprocess.run([sys.executable, script, "--help"], capture_output=True, timeout=20)
-        ok = proc.returncode == 0 and b"status" in proc.stdout and not proc.stderr
-        results["wechat_help"] = {"ok": ok, "returncode": proc.returncode}
+        skill = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "wechat", "SKILL.md")
+        body = open(skill, encoding="utf-8").read()
+        ok = (
+            os.path.isfile(skill)
+            and "wx sessions" in body
+            and "jackwener/wx-cli-again" in body
+            and not os.path.exists(os.path.join(os.path.dirname(skill), "scripts", "wechat.py"))
+        )
+        results["wechat_skill"] = {"ok": ok, "direct_wx": True}
         ok_all &= ok
     except Exception as e:
-        results["wechat_help"] = {"ok": False, "error": str(e)[:150]}
+        results["wechat_skill"] = {"ok": False, "error": str(e)[:150]}
         ok_all = False
 
     # 6. 浏览器就绪（quick 模式跳过）
@@ -114,61 +119,6 @@ def main():
             results["browser"] = {"ok": False, "error": str(e)[:150]}
             ok_all = False
 
-
-    # 6. wechat 子技能（合成库，不碰真实微信数据）
-    try:
-        from pathlib import Path as _P
-        tmp_home = _P(tempfile.mkdtemp(prefix="campus_wechat_smoke_"))
-        env = os.environ.copy()
-        env["CAMPUS_WECHAT_HOME"] = str(tmp_home)
-        env["CAMPUS_WECHAT_BACKEND"] = "index"
-        wechat_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "wechat", "scripts", "wechat.py")
-        build_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "wechat", "build_fake_index.py")
-        # setup ack
-        r1 = subprocess.run([sys.executable, wechat_py, "setup", "--ack", "--note", "smoke"], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30)
-        # build fake index into home
-        index_db = tmp_home / "index.db"
-        r_build = subprocess.run([sys.executable, build_py, "--out", str(index_db)], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
-        r2 = subprocess.run([sys.executable, wechat_py, "sessions", "--backend", "index", "-n", "10"], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30)
-        r3 = subprocess.run([sys.executable, wechat_py, "search", "--backend", "index", "--query", "作业", "-n", "10"], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30)
-        r4 = subprocess.run([sys.executable, wechat_py, "export-todos", "--backend", "index", "-n", "10"], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30)
-        def _j(r):
-            try:
-                return json.loads(r.stdout or "{}")
-            except Exception:
-                return {"status": "error", "raw": (r.stdout or "")[:200], "stderr_len": len(r.stderr or "")}
-        j1, j2, j3, j4 = _j(r1), _j(r2), _j(r3), _j(r4)
-        ok = (
-            r_build.returncode == 0
-            and j1.get("status") == "ok"
-            and j2.get("status") == "ok"
-            and j2.get("count", 0) >= 1
-            and j3.get("status") == "ok"
-            and j3.get("count", 0) >= 1
-            and j4.get("status") == "ok"
-            and j4.get("count", 0) >= 1
-            and (r2.stderr or "") == ""
-            and (r3.stderr or "") == ""
-        )
-        results["wechat"] = {
-            "ok": ok,
-            "setup": j1.get("status"),
-            "sessions": j2.get("count"),
-            "search_hits": j3.get("count"),
-            "todos": j4.get("count"),
-            "backend_forced": "index",
-            "build_ok": r_build.returncode == 0,
-        }
-        ok_all &= ok
-        # cleanup best-effort
-        try:
-            import shutil
-            shutil.rmtree(tmp_home, ignore_errors=True)
-        except Exception:
-            pass
-    except Exception as e:
-        results["wechat"] = {"ok": False, "error": str(e)[:150]}
-        ok_all = False
 
 
     results["status"] = "ok" if ok_all else "error"
