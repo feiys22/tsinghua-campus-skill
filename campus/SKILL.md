@@ -139,6 +139,7 @@ metadata:
 | **高德**（restapi.amap.com） | amap | `AMAP_KEY`（统一 .env） | 高德地图 Web 服务 API（地点/POI/路径/天气/地理编码） |
 | **LLM**（api.deepseek.com） | learn 预批改 / literature 摘要 | `deepseek_api_key` | LLM 摘要/预批改（可选） |
 | **邮件**（IMAP/SMTP） | mail | `MAIL_ACCOUNTS`（统一 .env） | 收发邮件 |
+| **微信**（本机 wx-cli） | wechat | 无校园凭据。需本机安装 wx-cli，且微信桌面版已登录 | 读取社团/社工/导师/课题组消息 |
 
 > **凭据存储（加密保险箱）**：CAS 等安全凭据走 `creds.py`，全部存进**单个加密保险箱** `campus/runtime/credentials.enc`（Fernet 加密的 JSON）。解密只需**一个主密钥**，来源优先级：① 环境变量 `CAMPUS_MASTER_KEY`（跨机同步用）② OS keyring 单条（本机绑定，自动生成）③ `campus/runtime/vault/master.key`（0600，兜底）。邮箱等用户级大配置统一在 `campus/.env`（见 `.env.example`）。两者都被 git 忽略，不出设备。
 >
@@ -182,6 +183,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
 > 第二成绩单（`ts2/`）已实现：课外经历 19 模块查询 + 填报状态，直连无需 webvpn，全年可用。
 > `library`（`library/`）已实现：座位余量（公开）+ 座位分布（公开）+ 选座预约 book/cancel + 我的预约 + 研读间占用。我的图书馆（discover.lib 借阅记录）登录在 CDP 环境受限（第三方认证拦截），完整逆向笔记见 `../docs/library-reverse-notes.md`。
 > `mail`（`mail/`）已实现：收发邮件，配置统一在 `campus/.env`（`MAIL_ACCOUNTS`）。
+> `wechat`（`wechat/`）可选：调用本机 wx-cli 读取已登录的微信。没有可靠置顶字段。不把个人联系人写进代码。
 > `info`（`info/`）已实现：校内通知查询（分类列表 + 详情全文）。
 
 ### 面向用户的话术
@@ -214,6 +216,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
   - ⚠️ 规则：**一人一天最多 4H**；**不能连续预约**（已有 14-18 则不能订 18-22，换房间也不行）；取消用 `library.py cancel-room --uuid <uuid> --confirm`
 - **"帮我预约个座位"** / "取消预约" — 座位预约/取消（写操作，需确认）
 - **"看邮件"** / "有什么新邮件" — 收发邮件
+- **"看微信"** / "社团有什么安排" / "导师或课题组有没有消息" — 读取本机微信（需已安装 wx-cli）
 - **"最近有什么通知"** / "放假安排" — 校内通知
 - **"帮我搜本书"** / "图书馆有 XX 吗" — 水木搜索馆藏检索
 - **"帮我查文献"** — 多源文献检索（Scopus/arXiv/OpenAlex/Crossref）

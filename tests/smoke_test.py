@@ -12,6 +12,7 @@ import os
 import json
 import tempfile
 import argparse
+import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "shared", "scripts"))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "creds", "scripts"))
@@ -91,7 +92,18 @@ def main():
         results["creds_schema"] = {"ok": False, "error": str(e)[:150]}
         ok_all = False
 
-    # 5. 浏览器就绪（quick 模式跳过）
+    # 5. wechat 入口可调用（不连接微信数据库）
+    try:
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "campus", "wechat", "scripts", "wechat.py")
+        proc = subprocess.run([sys.executable, script, "--help"], capture_output=True, timeout=20)
+        ok = proc.returncode == 0 and b"status" in proc.stdout and not proc.stderr
+        results["wechat_help"] = {"ok": ok, "returncode": proc.returncode}
+        ok_all &= ok
+    except Exception as e:
+        results["wechat_help"] = {"ok": False, "error": str(e)[:150]}
+        ok_all = False
+
+    # 6. 浏览器就绪（quick 模式跳过）
     if not args.quick:
         try:
             r = browser.ensure_ready()
