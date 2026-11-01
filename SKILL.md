@@ -106,7 +106,7 @@ metadata:
 - ✅ ts2 第二成绩单
 - ✅ library 图书馆（座位/研读间）
 - ✅ mail 邮件
-- 🟡 wechat 微信（可选，依赖本机 wx-cli；只读，不走 CAS）
+- 🟡 wechat 微信（可选，直接调用本机 wx；只读，不走 CAS）
 - ✅ info 校内通知/馆藏检索
 - ✅ amap 高德地图（地点/POI/周边/路径/地理编码/天气）
 - ✅ madmodel 校内大模型（MAD：DeepSeek-V4.1-Flash / qwen3.8-27b / DeepSeek-R1-W8A8；token 取/刷新 + 对话 + 本地 OpenAI 兼容代理）
@@ -145,7 +145,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
 | `AMAP_KEY` | ⬜ | 高德开放平台 lbs.amap.com Web 服务 Key | 地图/POI/路径/天气/地理编码（不配则 amap 不可用） |
 | `deepseek_api_key` | ⬜ | DeepSeek API Key | learn 预批改 / 文献摘要（可选） |
 | `MAIL_ACCOUNTS` | ⬜ | 邮箱 IMAP/SMTP 授权码（写 campus/.env） | 收发邮件（mail） |
-| 本机 `wx-cli` | ⬜ | 不是校园密码。微信桌面版保持登录，并完成 `wx init` | 读取微信（wechat） |
+| 本机 `wx`（wx-cli） | ⬜ | 不是校园密码。微信桌面版已登录并完成取钥（Windows: `wx init`；Linux 4.1+ 见 wechat/SKILL.md） | 读取微信（wechat） |
 
 **索取铁律（隐私）**：账号密码必须经 `creds.py add <key> --value-stdin` 的 stdin 直传（只走内存 → 写入加密保险箱 `credentials.enc`），禁止先写临时 JSON/文件再读。展示时脱敏（学号 `202***`，密码绝不显示）。
 
@@ -163,7 +163,7 @@ Step 5: 全部就绪 → 告诉用户"已初始化完成，可以说'查看待�
   第二成绩单   → ts2 SKILL（子）
   图书馆/座位  → library SKILL（子）
   邮箱         → mail SKILL（子）
-  微信         → wechat SKILL（子，可选；社团/社工/导师/课题组消息）
+  微信         → wechat SKILL（子，可选；直接 wx；社团/社工/导师/课题组消息）
   文献检索     → literature SKILL（子，4 源：Scopus/arXiv/OpenAlex/Crossref）
   校内通知     → info SKILL（子）
   搜校园信息   → search SKILL（子）
