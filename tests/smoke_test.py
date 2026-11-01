@@ -117,7 +117,6 @@ def main():
 
     # 6. wechat 子技能（合成库，不碰真实微信数据）
     try:
-        import subprocess
         from pathlib import Path as _P
         tmp_home = _P(tempfile.mkdtemp(prefix="campus_wechat_smoke_"))
         env = os.environ.copy()
